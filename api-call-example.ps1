@@ -1,6 +1,6 @@
 param(
   [string]$Text = "你好，我係本地 TTS API。",
-  [string]$Out = "E:\AI\tts\cosyvoice-server\outputs\api-output.wav",
+  [string]$Out = "",
   [string]$Server = "http://127.0.0.1:5055",
   [ValidateSet("自然语言控制", "3s极速复刻", "跨语种复刻")]
   [string]$Mode = "自然语言控制",
@@ -12,9 +12,20 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Root = "E:\AI\tts\cosyvoice-server"
-$Python = Join-Path $Root "envs\cosyvoice\python.exe"
+$Root = $PSScriptRoot
+$EnvRoot = Join-Path $Root "envs\cosyvoice"
+$Python = Join-Path $EnvRoot "python.exe"
+if (-not (Test-Path -LiteralPath $Python)) {
+  $Python = Join-Path $EnvRoot "Scripts\python.exe"
+}
+if (-not (Test-Path -LiteralPath $Python)) {
+  throw "Python environment not found. Run setup.ps1 first, or create envs\cosyvoice."
+}
 $Example = Join-Path $Root "api-call-example.py"
+
+if (-not $Out) {
+  $Out = Join-Path $Root "outputs\api-output.wav"
+}
 
 $env:PYTHONIOENCODING = "utf-8"
 

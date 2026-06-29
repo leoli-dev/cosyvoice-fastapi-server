@@ -8,13 +8,19 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Root = "E:\AI\tts\cosyvoice-server"
+$Root = $PSScriptRoot
 $RunDir = Join-Path $Root "run"
 $PidFile = Join-Path $RunDir "cosyvoice-tts.pid"
 $OutLog = Join-Path $RunDir "cosyvoice-tts.out.log"
 $ErrLog = Join-Path $RunDir "cosyvoice-tts.err.log"
-$Python = Join-Path $Root "envs\cosyvoice\python.exe"
 $EnvRoot = Join-Path $Root "envs\cosyvoice"
+$Python = Join-Path $EnvRoot "python.exe"
+if (-not (Test-Path -LiteralPath $Python)) {
+  $Python = Join-Path $EnvRoot "Scripts\python.exe"
+}
+if (-not (Test-Path -LiteralPath $Python)) {
+  throw "Python environment not found. Run setup.ps1 first, or create envs\cosyvoice."
+}
 $ApiServer = Join-Path $Root "homelab_tts_api.py"
 $ModelDir = Join-Path $Root "models\Fun-CosyVoice3-0.5B"
 $WorkDir = $Root
@@ -42,10 +48,10 @@ $env:ORT_LOG_SEVERITY_LEVEL = "3"
 $env:PYTHONUNBUFFERED = "1"
 $env:PATH = @(
   $EnvRoot,
+  (Join-Path $EnvRoot "Scripts"),
   (Join-Path $EnvRoot "Library\mingw-w64\bin"),
   (Join-Path $EnvRoot "Library\usr\bin"),
   (Join-Path $EnvRoot "Library\bin"),
-  (Join-Path $EnvRoot "Scripts"),
   (Join-Path $EnvRoot "bin"),
   $env:PATH
 ) -join ";"

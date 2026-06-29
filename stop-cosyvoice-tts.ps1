@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$Root = "E:\AI\tts\cosyvoice-server"
+$Root = $PSScriptRoot
 $PidFile = Join-Path $Root "run\cosyvoice-tts.pid"
 
 if (-not (Test-Path -LiteralPath $PidFile)) {

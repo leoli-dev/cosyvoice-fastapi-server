@@ -1,76 +1,74 @@
 # CosyVoice FastAPI Server
 
-A small self-hosted FastAPI wrapper around CosyVoice3 for LAN TTS calls.
+A Windows PowerShell-based FastAPI wrapper for running CosyVoice TTS on a local
+machine or LAN.
 
-This repository contains only the API wrapper, client examples, and Windows
-PowerShell helper scripts. It does not include CosyVoice source code, model
-weights, Python environments, caches, or generated audio files.
+This repository contains the wrapper code and helper scripts only. It does not
+include CosyVoice source code, model weights, Python environments, caches, logs,
+or generated audio.
 
-## Features
+## Target Environment
 
-- OpenAI-style `POST /v1/audio/speech` endpoint.
-- Health check endpoint at `GET /health`.
-- WAV output by default, with optional mp3/flac/ogg/m4a conversion through
-  FFmpeg.
-- CosyVoice3 natural-language control mode by default.
-- Optional zero-shot and cross-lingual modes exposed through request fields.
-- Windows start/stop/warmup scripts.
+- Windows 10/11
+- PowerShell 7 or Windows PowerShell
+- Python 3.10 recommended
+- NVIDIA GPU with a working PyTorch/CUDA install recommended
+- Git
+- FFmpeg on `PATH` for non-WAV output formats
 
-## Repository Layout
-
-```text
-homelab_tts_api.py          FastAPI server
-start-cosyvoice-tts.ps1     Start server on Windows
-stop-cosyvoice-tts.ps1      Stop server on Windows
-warm-cosyvoice-tts.ps1      Optional warmup request script
-api-call-example.py         Python client example
-api-call-example.ps1        PowerShell client wrapper
-API_USAGE.md                API examples
-ATTRIBUTION.md              Third-party notices
-```
-
-## Required External Files
-
-Expected local layout after setup:
+All examples use `<INSTALL_ROOT>` as a placeholder, for example:
 
 ```text
-CosyVoice/                              # cloned separately
-models/Fun-CosyVoice3-0.5B/             # downloaded separately
-envs/cosyvoice/                         # local Python environment
+<INSTALL_ROOT>\cosyvoice-fastapi-server
 ```
 
-The default PowerShell scripts assume the repository is located at:
+Do not commit your personal install path, model weights, cache, or generated
+audio.
 
-```text
-E:\AI\tts\cosyvoice-server
-```
+## Setup
 
-If you install elsewhere, edit `$Root` in the `.ps1` scripts.
-
-## Third-Party Attribution
-
-This wrapper depends on:
-
-- CosyVoice by FunAudioLLM: https://github.com/FunAudioLLM/CosyVoice
-- Fun-CosyVoice3 model weights from Hugging Face or ModelScope.
-- PyTorch, FastAPI, Uvicorn, librosa, soundfile, and FFmpeg.
-
-See [ATTRIBUTION.md](ATTRIBUTION.md) for license and source notes. The wrapper
-code in this repository is MIT licensed; CosyVoice and model artifacts remain
-under their own licenses.
-
-## API
-
-Start the service:
+Clone this wrapper:
 
 ```powershell
-E:\AI\tts\cosyvoice-server\start-cosyvoice-tts.ps1
+cd <INSTALL_ROOT>
+git clone https://github.com/leoli-dev/cosyvoice-fastapi-server.git
+cd .\cosyvoice-fastapi-server
 ```
 
-Stop the service:
+Run setup:
 
 ```powershell
-E:\AI\tts\cosyvoice-server\stop-cosyvoice-tts.ps1
+.\setup.ps1
+```
+
+The setup script will:
+
+- clone `https://github.com/FunAudioLLM/CosyVoice.git` into `.\CosyVoice`
+- create `.\envs\cosyvoice`
+- install wrapper and CosyVoice Python requirements
+- download the default Fun-CosyVoice3 model into `.\models\Fun-CosyVoice3-0.5B`
+
+If you already manage CosyVoice, Python, or model files yourself, use the skip
+switches:
+
+```powershell
+.\setup.ps1 -SkipCosyVoiceClone
+.\setup.ps1 -SkipPythonEnv
+.\setup.ps1 -SkipModelDownload
+```
+
+## Start and Stop
+
+Start the API server:
+
+```powershell
+.\start-cosyvoice-tts.ps1
+```
+
+Stop it:
+
+```powershell
+.\stop-cosyvoice-tts.ps1
 ```
 
 Health check:
@@ -79,7 +77,15 @@ Health check:
 Invoke-RestMethod http://127.0.0.1:5055/health
 ```
 
-Generate speech:
+## API
+
+Endpoint:
+
+```text
+POST /v1/audio/speech
+```
+
+PowerShell example:
 
 ```powershell
 $body = @{
@@ -96,7 +102,7 @@ Invoke-WebRequest `
   -OutFile ".\outputs\demo.wav"
 ```
 
-Or use the included client:
+Client script example:
 
 ```powershell
 .\api-call-example.ps1 `
@@ -126,24 +132,22 @@ X-TTS-Request-Count
 
 ## Warmup
 
-The server does not run long warmup by default, so it becomes ready faster.
-You can manually warm common sentence lengths:
+The server does not run long warmup by default. To warm common sentence lengths:
 
 ```powershell
 .\warm-cosyvoice-tts.ps1
 ```
 
-Or start with blocking warmup:
+To run blocking warmup during startup:
 
 ```powershell
 .\start-cosyvoice-tts.ps1 -Warmup
 ```
 
-## Notes
+## Third-Party Notice
 
-- The model is intentionally protected by a single `model_lock`; concurrent
-  requests are serialized because this local CosyVoice path is not proven safe
-  for parallel inference on one GPU.
-- Non-WAV formats require `ffmpeg` on `PATH`.
-- The first request after process start may be slower due to model and CUDA
-  lazy initialization.
+This wrapper uses CosyVoice by FunAudioLLM and Fun-CosyVoice3 model artifacts,
+but does not redistribute them. See [ATTRIBUTION.md](ATTRIBUTION.md).
+
+The wrapper code and scripts in this repository are MIT licensed. Third-party
+projects and model artifacts remain under their own licenses.

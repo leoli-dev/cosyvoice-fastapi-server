@@ -10,7 +10,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Call the local CosyVoice API and save an audio file.")
     parser.add_argument("--server", default="http://127.0.0.1:5055", help="CosyVoice API base URL")
     parser.add_argument("--text", required=True, help="Text to synthesize")
-    parser.add_argument("--out", default=r"E:\AI\tts\cosyvoice-server\outputs\api-output.wav", help="Output audio path")
+    parser.add_argument("--out", default="outputs/api-output.wav", help="Output audio path")
     parser.add_argument("--mode", default="自然语言控制", choices=["自然语言控制", "3s极速复刻", "跨语种复刻"], help="Inference mode")
     parser.add_argument("--instruct", default="请用广东话表达，语气清晰、自然。", help="Natural-language voice instruction")
     parser.add_argument("--prompt-wav", default=None, help="Server-local reference voice WAV/MP3 path")

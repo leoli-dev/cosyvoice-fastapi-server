@@ -7,4 +7,5 @@ torchaudio
 librosa
 soundfile
 requests
-
+huggingface_hub
+modelscope

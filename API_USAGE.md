@@ -1,28 +1,34 @@
-# CosyVoice TTS API 调用说明
+# API Usage
 
-当前服务已经切换成纯 FastAPI，唔再用 Gradio WebUI。
+This project is intended to run on Windows through PowerShell.
 
-- 本机：`http://127.0.0.1:5055`
-- 内网：`http://10.44.44.33:5055`
-- Endpoint：`POST /v1/audio/speech`
+Replace `<INSTALL_ROOT>` with the folder where you cloned this repository:
 
-## PowerShell 调用
-
-```powershell
-E:\AI\tts\cosyvoice-server\api-call-example.ps1 `
-  -Text "你好，呢段声音係经由内网 API 生成。" `
-  -Out "E:\AI\tts\cosyvoice-server\outputs\demo.wav"
+```text
+<INSTALL_ROOT>\cosyvoice-fastapi-server
 ```
 
-输出 MP3：
+## Start
 
 ```powershell
-E:\AI\tts\cosyvoice-server\api-call-example.ps1 `
-  -Text "你好，呢段声音会输出成 MP3。" `
-  -Out "E:\AI\tts\cosyvoice-server\outputs\demo.mp3"
+cd <INSTALL_ROOT>\cosyvoice-fastapi-server
+.\start-cosyvoice-tts.ps1
 ```
 
-## HTTP JSON 调用
+Default URLs:
+
+```text
+http://127.0.0.1:5055
+http://<server-lan-ip>:5055
+```
+
+## Health
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5055/health
+```
+
+## Generate WAV
 
 ```powershell
 $body = @{
@@ -36,38 +42,52 @@ Invoke-WebRequest `
   -Method Post `
   -ContentType "application/json; charset=utf-8" `
   -Body $body `
-  -OutFile "E:\AI\tts\cosyvoice-server\outputs\api.wav"
+  -OutFile ".\outputs\api.wav"
 ```
 
-返回 headers 会包含：
+## Client Script
 
-```text
-X-Audio-Duration
-X-TTS-Elapsed
-X-TTS-RTF
+```powershell
+.\api-call-example.ps1 `
+  -Text "你好，呢段声音係经由内网 API 生成。" `
+  -Out ".\outputs\demo.wav"
 ```
 
-## 请求字段
+To call a server on another LAN machine:
 
-- `input`：要合成嘅文字
-- `response_format`：`wav`、`mp3`、`flac`、`ogg`、`m4a`
-- `mode`：默认 `自然语言控制`
-- `instruct`：例如 `请用广东话表达，语气清晰、自然。`
-- `prompt_wav`：服务器本地参考音频路径，可用于换音色
-- `prompt_text`：`3s极速复刻` 模式下嘅参考音频文本
-- `seed`：随机种子
-- `speed`：语速
+```powershell
+.\api-call-example.ps1 `
+  -Server "http://<server-lan-ip>:5055" `
+  -Text "你好，这是内网调用。" `
+  -Out ".\outputs\lan-demo.wav"
+```
 
-## 预热接口
+## Request Fields
 
-服务默认不做长预热，避免 Start 之后等太久。你可以按应用里常见句子手动预热：
+- `input`: text to synthesize.
+- `response_format`: `wav`, `mp3`, `flac`, `ogg`, or `m4a`.
+- `mode`: `自然语言控制`, `3s极速复刻`, or `跨语种复刻`.
+- `instruct`: natural-language voice instruction.
+- `prompt_wav`: server-local reference audio path for custom voice cloning.
+- `prompt_text`: transcript for `3s极速复刻`.
+- `seed`: random seed.
+- `speed`: speech speed.
+
+## Warmup
+
+Manual warmup:
+
+```powershell
+.\warm-cosyvoice-tts.ps1
+```
+
+Custom warmup request:
 
 ```powershell
 $body = @{
   texts = @(
     "你好，这是短句预热。",
-    "今日天气不错，我们测试一下语音服务器反应速度。",
-    "请用自然的广东话讲出这一句话，看看延迟是否稳定。"
+    "今日天气不错，我们测试一下语音服务器反应速度。"
   )
 } | ConvertTo-Json
 
@@ -78,40 +98,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-或者直接用脚本：
-
-```powershell
-E:\AI\tts\cosyvoice-server\warm-cosyvoice-tts.ps1
-```
-
-如果你想启动时阻塞预热：
-
-```powershell
-E:\AI\tts\cosyvoice-server\start-cosyvoice-tts.ps1 -Warmup
-```
-
-`-Fp16` 仍然保留，但这台 RTX 5070 + Windows 路径实测反而更慢，所以默认不用：
-
-```powershell
-E:\AI\tts\cosyvoice-server\start-cosyvoice-tts.ps1 -Fp16
-```
-
-## 已验证
-
-```text
-E:\AI\tts\cosyvoice-server\outputs\fastapi-test.wav
-E:\AI\tts\cosyvoice-server\outputs\fastapi-test.mp3
-```
-
-当前优化后，默认自然语言控制模式在预热覆盖的常见句长上比较稳定：
-
-```text
-2.72 秒音频：约 3.4-3.6 秒
-5.40 秒音频：约 6.1-6.6 秒
-5.52 秒音频：约 6.1-6.3 秒
-```
-
-响应 headers 包含：
+## Headers
 
 ```text
 X-Audio-Duration
