@@ -1,0 +1,33 @@
+# Runtime / generated files
+__pycache__/
+*.py[cod]
+run/
+tmp/
+outputs/
+cache/
+pip-cache/
+.docker/
+
+# Local Python environments
+envs/
+.venv/
+venv/
+
+# Third-party source and model artifacts are intentionally not vendored.
+CosyVoice/
+models/
+tools/
+
+# Audio artifacts
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+
+# Local machine/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+

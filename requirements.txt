@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+numpy<2
+torch
+torchaudio
+librosa
+soundfile
+requests
+
